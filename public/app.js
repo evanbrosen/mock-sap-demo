@@ -2,6 +2,42 @@
 const app = {
   currentView: 'home',
   apiBase: window.location.origin,
+  currentModalType: null,
+
+  objectTypes: {
+    PurchaseOrder: {
+      label: 'Purchase Orders',
+      endpoint: 'Z_PURCHASE_ORDER_SRV/PurchaseOrderSet',
+      apiEndpoint: 'PurchaseOrders',
+      fields: [
+        { name: 'vendor_id', label: 'Vendor ID', type: 'text', required: true },
+        { name: 'amount', label: 'Amount', type: 'number', required: true },
+        { name: 'currency', label: 'Currency', type: 'text', default: 'USD' },
+        { name: 'description', label: 'Description', type: 'textarea' }
+      ]
+    },
+    PurchaseRequest: {
+      label: 'Purchase Requests',
+      endpoint: 'Z_PURCHASE_REQUEST_SRV/PurchaseRequestSet',
+      apiEndpoint: 'PurchaseRequests',
+      fields: [
+        { name: 'requester_id', label: 'Requester ID', type: 'text', required: true },
+        { name: 'amount', label: 'Amount', type: 'number', required: true },
+        { name: 'currency', label: 'Currency', type: 'text', default: 'USD' },
+        { name: 'description', label: 'Description', type: 'textarea' }
+      ]
+    },
+    WorkOrder: {
+      label: 'Work Orders',
+      endpoint: 'Z_WORK_ORDER_SRV/WorkOrderSet',
+      apiEndpoint: 'WorkOrders',
+      fields: [
+        { name: 'assigned_to', label: 'Assigned To', type: 'text', required: true },
+        { name: 'priority', label: 'Priority', type: 'select', options: ['LOW', 'MEDIUM', 'HIGH'], required: true },
+        { name: 'description', label: 'Description', type: 'textarea', required: true }
+      ]
+    }
+  },
 
   init() {
     this.setupNavigation();
@@ -60,7 +96,9 @@ const app = {
       this.currentView = viewName;
 
       // Load data for the view
-      if (viewName === 'purchase-orders') {
+      if (viewName === 'objects-grid') {
+        this.loadObjectsGrid();
+      } else if (viewName === 'purchase-orders') {
         this.loadPurchaseOrders();
       } else if (viewName === 'purchase-requests') {
         this.loadPurchaseRequests();
@@ -171,33 +209,167 @@ const app = {
     }
   },
 
-  createNew(type) {
+  openCreateModal(type) {
+    this.currentModalType = type;
+    const config = this.objectTypes[type];
+    const modal = document.getElementById('createModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const formFields = document.getElementById('formFields');
+    const createForm = document.getElementById('createForm');
+
+    modalTitle.textContent = `Create ${config.label.slice(0, -1)}`;
+    
+    formFields.innerHTML = config.fields.map(field => {
+      const required = field.required ? 'required' : '';
+      const value = field.default || '';
+      
+      if (field.type === 'textarea') {
+        return `
+          <div class="form-group">
+            <label for="${field.name}">${field.label}</label>
+            <textarea id="${field.name}" name="${field.name}" ${required}></textarea>
+          </div>
+        `;
+      } else if (field.type === 'select') {
+        const options = field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+        return `
+          <div class="form-group">
+            <label for="${field.name}">${field.label}</label>
+            <select id="${field.name}" name="${field.name}" ${required}>
+              <option value="">Select ${field.label}</option>
+              ${options}
+            </select>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="form-group">
+            <label for="${field.name}">${field.label}</label>
+            <input type="${field.type}" id="${field.name}" name="${field.name}" value="${value}" ${required} />
+          </div>
+        `;
+      }
+    }).join('');
+
+    createForm.dataset.type = type;
+    modal.classList.add('active');
+  },
+
+  closeCreateModal() {
+    const modal = document.getElementById('createModal');
+    const createForm = document.getElementById('createForm');
+    modal.classList.remove('active');
+    createForm.reset();
+    this.currentModalType = null;
+  },
+
+  async submitCreateForm(event) {
+    event.preventDefault();
+    
+    const type = this.currentModalType;
+    const config = this.objectTypes[type];
+    const form = document.getElementById('createForm');
+    const formData = new FormData(form);
+    
     const data = {
-      vendor_id: 'VENDOR-001',
-      requester_id: 'USER-001',
-      assigned_to: 'USER-001',
-      amount: 1000,
-      currency: 'USD',
-      priority: 'MEDIUM',
-      description: 'New ' + type,
       created_by: 'DEMO_USER',
     };
+    
+    config.fields.forEach(field => {
+      const value = formData.get(field.name);
+      if (value) {
+        data[field.name] = field.type === 'number' ? parseFloat(value) : value;
+      }
+    });
 
-    const endpoint = type === 'PurchaseOrder' ? 'Z_PURCHASE_ORDER_SRV/PurchaseOrderSet' :
-                    type === 'PurchaseRequest' ? 'Z_PURCHASE_REQUEST_SRV/PurchaseRequestSet' :
-                    'Z_WORK_ORDER_SRV/WorkOrderSet';
+    try {
+      const response = await fetch(`${this.apiBase}/sap/opu/odata/sap/${config.endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
 
-    fetch(`${this.apiBase}/sap/opu/odata/sap/${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-      .then(r => r.json())
-      .then(result => {
-        alert(`${type} created: ${result.id}`);
-        this.loadData();
-      })
-      .catch(err => alert('Error: ' + err.message));
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      this.closeCreateModal();
+      
+      // Reload data and show success
+      await this.loadData();
+      alert(`${config.label.slice(0, -1)} created successfully: ${result.id}`);
+    } catch (error) {
+      alert(`Error creating ${config.label.slice(0, -1)}: ${error.message}`);
+    }
+  },
+
+  async loadObjectsGrid() {
+    const grid = document.getElementById('objectsGrid');
+    
+    try {
+      const cards = await Promise.all(
+        Object.entries(this.objectTypes).map(async ([type, config]) => {
+          try {
+            const response = await fetch(`${this.apiBase}/api/fiori/${config.apiEndpoint}`);
+            const data = await response.json();
+            const items = data.value || [];
+            
+            const preview = items.slice(0, 3).map(item => {
+              const id = item.id;
+              const date = new Date(item.created_date).toLocaleDateString();
+              const status = item.status;
+              return `<div class="preview-item">${id} | ${date} | ${status}</div>`;
+            }).join('');
+
+            return `
+              <div class="object-card">
+                <div class="card-header" onclick="app.navigateToDashboard('${type}')">
+                  <h3>${config.label}</h3>
+                  <span class="card-count">${items.length}</span>
+                </div>
+                <div class="card-preview">
+                  ${preview || '<div class="preview-item">No items yet</div>'}
+                </div>
+                <button class="btn btn-primary" onclick="app.openCreateModal('${type}')">
+                  + Create
+                </button>
+              </div>
+            `;
+          } catch (error) {
+            console.error(`Error loading ${type}:`, error);
+            return `
+              <div class="object-card">
+                <div class="card-header">
+                  <h3>${config.label}</h3>
+                  <span class="card-count">0</span>
+                </div>
+                <div class="card-preview">
+                  <div class="preview-item error">Error loading data</div>
+                </div>
+                <button class="btn btn-primary" onclick="app.openCreateModal('${type}')">
+                  + Create
+                </button>
+              </div>
+            `;
+          }
+        })
+      );
+
+      grid.innerHTML = cards.join('');
+    } catch (error) {
+      console.error('Error loading objects grid:', error);
+      grid.innerHTML = '<div class="error">Error loading objects grid</div>';
+    }
+  },
+
+  navigateToDashboard(type) {
+    const viewMap = {
+      'PurchaseOrder': 'purchase-orders',
+      'PurchaseRequest': 'purchase-requests',
+      'WorkOrder': 'work-orders'
+    };
+    this.switchView(viewMap[type]);
   },
 
   formatApiDocs(data) {

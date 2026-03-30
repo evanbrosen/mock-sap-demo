@@ -17,9 +17,7 @@
 
     <nav class="nav">
       <button class="nav-btn active" data-view="home">Home</button>
-      <button class="nav-btn" data-view="purchase-orders">Purchase Orders</button>
-      <button class="nav-btn" data-view="purchase-requests">Purchase Requests</button>
-      <button class="nav-btn" data-view="work-orders">Work Orders</button>
+      <button class="nav-btn" data-view="objects-grid">Objects</button>
       <button class="nav-btn" data-view="api-docs">API Docs</button>
     </nav>
 
@@ -60,12 +58,22 @@
         </div>
       </section>
 
-      <!-- Purchase Orders View -->
+      <!-- Objects Grid View -->
+      <section id="objects-grid" class="view active">
+        <div class="container">
+          <h2>Objects</h2>
+          <div class="objects-grid" id="objectsGrid">
+            <div class="loading">Loading objects...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Purchase Orders Dashboard -->
       <section id="purchase-orders" class="view">
         <div class="container">
           <div class="view-header">
             <h2>Purchase Orders</h2>
-            <button class="btn btn-primary" onclick="app.createNew('PurchaseOrder')">+ New PO</button>
+            <button class="btn btn-primary" onclick="app.openCreateModal('PurchaseOrder')">+ New PO</button>
           </div>
 
           <div class="list-container">
@@ -88,12 +96,12 @@
         </div>
       </section>
 
-      <!-- Purchase Requests View -->
+      <!-- Purchase Requests Dashboard -->
       <section id="purchase-requests" class="view">
         <div class="container">
           <div class="view-header">
             <h2>Purchase Requests</h2>
-            <button class="btn btn-primary" onclick="app.createNew('PurchaseRequest')">+ New PR</button>
+            <button class="btn btn-primary" onclick="app.openCreateModal('PurchaseRequest')">+ New PR</button>
           </div>
 
           <div class="list-container">
@@ -116,12 +124,12 @@
         </div>
       </section>
 
-      <!-- Work Orders View -->
+      <!-- Work Orders Dashboard -->
       <section id="work-orders" class="view">
         <div class="container">
           <div class="view-header">
             <h2>Work Orders</h2>
-            <button class="btn btn-primary" onclick="app.createNew('WorkOrder')">+ New WO</button>
+            <button class="btn btn-primary" onclick="app.openCreateModal('WorkOrder')">+ New WO</button>
           </div>
 
           <div class="list-container">
@@ -158,6 +166,23 @@
     <footer class="footer">
       <p>&copy; 2026 Mock SAP Frontend. Built with Node.js, Express, and TypeScript.</p>
     </footer>
+  </div>
+
+  <!-- Create Modal -->
+  <div class="modal-overlay" id="createModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 id="modalTitle">Create Object</h2>
+        <button class="modal-close" onclick="app.closeCreateModal()">×</button>
+      </div>
+      <form id="createForm" onsubmit="app.submitCreateForm(event)">
+        <div id="formFields"></div>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Create</button>
+          <button type="button" class="btn btn-secondary" onclick="app.closeCreateModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="app.js"></script>
