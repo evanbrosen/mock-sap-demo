@@ -89,7 +89,7 @@ export abstract class BaseModel {
   /**
    * Update a record
    */
-  async update(id: string, data: Partial<IEntity>): Promise<IEntity | undefined> {
+  async update(id: string, data: any): Promise<IEntity | undefined> {
     const existing = await this.getById(id);
     if (!existing) return undefined;
 

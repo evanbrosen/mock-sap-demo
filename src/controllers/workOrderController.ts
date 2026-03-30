@@ -106,7 +106,7 @@ export class WorkOrderController extends BaseController {
   async getByPriority(req: Request, res: Response): Promise<void> {
     try {
       const { priority } = req.params;
-      const records = this.woModel.getByPriority(priority);
+      const records = await this.woModel.getByPriority(priority);
 
       res.json({
         value: records,
@@ -123,7 +123,7 @@ export class WorkOrderController extends BaseController {
   async getByAssignee(req: Request, res: Response): Promise<void> {
     try {
       const { assigneeId } = req.params;
-      const records = this.woModel.getByAssignee(assigneeId);
+      const records = await this.woModel.getByAssignee(assigneeId);
 
       res.json({
         value: records,
