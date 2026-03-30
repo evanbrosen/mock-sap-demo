@@ -104,7 +104,13 @@ const app = {
     const view = document.getElementById(viewName);
     if (view) {
       view.classList.add('active');
-      document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+      
+      // Only try to activate nav button if it exists (detail-view doesn't have one)
+      const navBtn = document.querySelector(`[data-view="${viewName}"]`);
+      if (navBtn) {
+        navBtn.classList.add('active');
+      }
+      
       this.currentView = viewName;
 
       // Load data for the view
@@ -215,6 +221,10 @@ const app = {
                       type === 'PurchaseRequest' ? 'PurchaseRequest' : 'WorkOrder';
       const response = await fetch(`${this.apiBase}/api/fiori/${endpoint}/${id}`);
       const data = await response.json();
+
+      // Set URL in SAP Fiori format
+      const fioriUrl = this.getFioriLink(type, id);
+      window.history.pushState({ view: 'detail-view', type, id }, '', fioriUrl);
 
       this.renderDetailView(type, data);
       this.switchView('detail-view');
@@ -338,6 +348,17 @@ const app = {
   },
 
   goBack() {
+    // Update URL back to home or previous view
+    const viewMap = {
+      'purchase-orders': '#',
+      'purchase-requests': '#',
+      'work-orders': '#',
+      'objects-grid': '#objects-grid',
+      'home': '#',
+      'api-docs': '#api-docs'
+    };
+    const url = viewMap[this.previousView] || '#';
+    window.history.pushState({ view: this.previousView }, '', url);
     this.switchView(this.previousView);
   },
 
