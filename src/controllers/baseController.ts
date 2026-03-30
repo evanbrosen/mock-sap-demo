@@ -16,8 +16,8 @@ export abstract class BaseController {
       const limit = req.query.$top ? parseInt(req.query.$top as string) : undefined;
       const offset = req.query.$skip ? parseInt(req.query.$skip as string) : undefined;
 
-      const records = this.model.getAll(limit, offset);
-      const total = this.model.count();
+      const records = await this.model.getAll(limit, offset);
+      const total = await this.model.count();
 
       res.json({
         value: records,
@@ -34,7 +34,7 @@ export abstract class BaseController {
   async getById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const record = this.model.getById(id);
+      const record = await this.model.getById(id);
 
       if (!record) {
         res.status(404).json({ error: 'Record not found' });
@@ -53,7 +53,7 @@ export abstract class BaseController {
   async create(req: Request, res: Response): Promise<void> {
     try {
       const data = req.body;
-      const record = this.model.create(data);
+      const record = await this.model.create(data);
 
       res.status(201).json(record);
     } catch (error) {
@@ -69,7 +69,7 @@ export abstract class BaseController {
       const { id } = req.params;
       const data = req.body;
 
-      const updated = this.model.update(id, data);
+      const updated = await this.model.update(id, data);
 
       if (!updated) {
         res.status(404).json({ error: 'Record not found' });
@@ -88,7 +88,7 @@ export abstract class BaseController {
   async delete(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const deleted = this.model.delete(id);
+      const deleted = await this.model.delete(id);
 
       if (!deleted) {
         res.status(404).json({ error: 'Record not found' });
@@ -107,7 +107,7 @@ export abstract class BaseController {
   async getByStatus(req: Request, res: Response): Promise<void> {
     try {
       const { status } = req.params;
-      const records = this.model.getByStatus(status);
+      const records = await this.model.getByStatus(status);
 
       res.json({
         value: records,

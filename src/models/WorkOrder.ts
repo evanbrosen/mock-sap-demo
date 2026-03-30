@@ -19,70 +19,78 @@ export class WorkOrder extends BaseModel {
   /**
    * Start a work order
    */
-  start(id: string, userId: string): IWorkOrder | undefined {
-    const wo = this.getById(id) as IWorkOrder | undefined;
+  async start(id: string, userId: string): Promise<IWorkOrder | undefined> {
+    const wo = await this.getById(id) as IWorkOrder | undefined;
     if (!wo || wo.status !== 'OPEN') return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'IN_PROGRESS',
       modified_by: userId,
-    }) as IWorkOrder | undefined;
+    })) as IWorkOrder | undefined;
   }
 
   /**
    * Complete a work order
    */
-  complete(id: string, userId: string): IWorkOrder | undefined {
-    const wo = this.getById(id) as IWorkOrder | undefined;
+  async complete(id: string, userId: string): Promise<IWorkOrder | undefined> {
+    const wo = await this.getById(id) as IWorkOrder | undefined;
     if (!wo || wo.status !== 'IN_PROGRESS') return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'COMPLETED',
       modified_by: userId,
-    }) as IWorkOrder | undefined;
+    })) as IWorkOrder | undefined;
   }
 
   /**
    * Cancel a work order
    */
-  cancel(id: string, userId: string): IWorkOrder | undefined {
-    const wo = this.getById(id) as IWorkOrder | undefined;
+  async cancel(id: string, userId: string): Promise<IWorkOrder | undefined> {
+    const wo = await this.getById(id) as IWorkOrder | undefined;
     if (!wo || !['OPEN', 'IN_PROGRESS'].includes(wo.status)) return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'CANCELLED',
       modified_by: userId,
-    }) as IWorkOrder | undefined;
+    })) as IWorkOrder | undefined;
   }
 
   /**
    * Reassign a work order to another user
    */
-  reassign(id: string, newAssignee: string, userId: string): IWorkOrder | undefined {
-    const wo = this.getById(id) as IWorkOrder | undefined;
+  async reassign(id: string, newAssignee: string, userId: string): Promise<IWorkOrder | undefined> {
+    const wo = await this.getById(id) as IWorkOrder | undefined;
     if (!wo) return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       assigned_to: newAssignee,
       modified_by: userId,
-    }) as IWorkOrder | undefined;
+    })) as IWorkOrder | undefined;
   }
 
   /**
    * Get work orders by priority
    */
-  getByPriority(priority: string): IWorkOrder[] {
-    const db = require('../config/database').default;
-    const stmt = db.prepare(`SELECT * FROM ${this.tableName} WHERE priority = ?`);
-    return stmt.all(priority) as IWorkOrder[];
+  async getByPriority(priority: string): Promise<IWorkOrder[]> {
+    return new Promise((resolve, reject) => {
+      const db = require('../config/database').default;
+      db.all(`SELECT * FROM ${this.tableName} WHERE priority = ?`, [priority], (err: any, rows: any) => {
+        if (err) reject(err);
+        else resolve(rows as IWorkOrder[]);
+      });
+    });
   }
 
   /**
    * Get work orders assigned to a user
    */
-  getByAssignee(assigneeId: string): IWorkOrder[] {
-    const db = require('../config/database').default;
-    const stmt = db.prepare(`SELECT * FROM ${this.tableName} WHERE assigned_to = ?`);
-    return stmt.all(assigneeId) as IWorkOrder[];
+  async getByAssignee(assigneeId: string): Promise<IWorkOrder[]> {
+    return new Promise((resolve, reject) => {
+      const db = require('../config/database').default;
+      db.all(`SELECT * FROM ${this.tableName} WHERE assigned_to = ?`, [assigneeId], (err: any, rows: any) => {
+        if (err) reject(err);
+        else resolve(rows as IWorkOrder[]);
+      });
+    });
   }
 }

@@ -20,52 +20,52 @@ export class PurchaseOrder extends BaseModel {
   /**
    * Submit a purchase order for approval
    */
-  submit(id: string, userId: string): IPurchaseOrder | undefined {
-    const po = this.getById(id) as IPurchaseOrder | undefined;
+  async submit(id: string, userId: string): Promise<IPurchaseOrder | undefined> {
+    const po = await this.getById(id) as IPurchaseOrder | undefined;
     if (!po || po.status !== 'DRAFT') return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'SUBMITTED',
       modified_by: userId,
-    }) as IPurchaseOrder | undefined;
+    })) as IPurchaseOrder | undefined;
   }
 
   /**
    * Approve a purchase order
    */
-  approve(id: string, userId: string): IPurchaseOrder | undefined {
-    const po = this.getById(id) as IPurchaseOrder | undefined;
+  async approve(id: string, userId: string): Promise<IPurchaseOrder | undefined> {
+    const po = await this.getById(id) as IPurchaseOrder | undefined;
     if (!po || po.status !== 'SUBMITTED') return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'APPROVED',
       modified_by: userId,
-    }) as IPurchaseOrder | undefined;
+    })) as IPurchaseOrder | undefined;
   }
 
   /**
    * Reject a purchase order
    */
-  reject(id: string, userId: string): IPurchaseOrder | undefined {
-    const po = this.getById(id) as IPurchaseOrder | undefined;
+  async reject(id: string, userId: string): Promise<IPurchaseOrder | undefined> {
+    const po = await this.getById(id) as IPurchaseOrder | undefined;
     if (!po || !['SUBMITTED', 'APPROVED'].includes(po.status)) return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'REJECTED',
       modified_by: userId,
-    }) as IPurchaseOrder | undefined;
+    })) as IPurchaseOrder | undefined;
   }
 
   /**
    * Close a purchase order
    */
-  close(id: string, userId: string): IPurchaseOrder | undefined {
-    const po = this.getById(id) as IPurchaseOrder | undefined;
+  async close(id: string, userId: string): Promise<IPurchaseOrder | undefined> {
+    const po = await this.getById(id) as IPurchaseOrder | undefined;
     if (!po || po.status !== 'APPROVED') return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'CLOSED',
       modified_by: userId,
-    }) as IPurchaseOrder | undefined;
+    })) as IPurchaseOrder | undefined;
   }
 }

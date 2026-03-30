@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import sqlite3 from 'sqlite3';
 import path from 'path';
 import fs from 'fs';
 
@@ -10,14 +10,19 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const db = new Database(dbPath);
+// Create database connection
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error('Error opening database:', err);
+  }
+});
 
 // Enable foreign keys
-db.pragma('foreign_keys = ON');
+db.run('PRAGMA foreign_keys = ON');
 
 export function initializeDatabase() {
   // Create Purchase Orders table
-  db.exec(`
+  db.run(`
     CREATE TABLE IF NOT EXISTS purchase_orders (
       id TEXT PRIMARY KEY,
       vendor_id TEXT NOT NULL,
@@ -33,7 +38,7 @@ export function initializeDatabase() {
   `);
 
   // Create Purchase Requests table
-  db.exec(`
+  db.run(`
     CREATE TABLE IF NOT EXISTS purchase_requests (
       id TEXT PRIMARY KEY,
       requester_id TEXT NOT NULL,
@@ -49,7 +54,7 @@ export function initializeDatabase() {
   `);
 
   // Create Work Orders table
-  db.exec(`
+  db.run(`
     CREATE TABLE IF NOT EXISTS work_orders (
       id TEXT PRIMARY KEY,
       assigned_to TEXT NOT NULL,
@@ -64,7 +69,7 @@ export function initializeDatabase() {
   `);
 
   // Create audit log table
-  db.exec(`
+  db.run(`
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       object_type TEXT NOT NULL,

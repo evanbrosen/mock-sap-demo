@@ -16,80 +16,104 @@ const woModel = new WorkOrder();
  */
 
 // API endpoint to get object data for Fiori navigation
-router.get('/api/fiori/PurchaseOrder/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const po = poModel.getById(id);
+router.get('/api/fiori/PurchaseOrder/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const po = await poModel.getById(id);
 
-  if (!po) {
-    res.status(404).json({ error: 'Purchase Order not found' });
-    return;
+    if (!po) {
+      res.status(404).json({ error: 'Purchase Order not found' });
+      return;
+    }
+
+    res.json(po);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Purchase Order' });
   }
-
-  res.json(po);
 });
 
-router.get('/api/fiori/PurchaseRequest/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const pr = prModel.getById(id);
+router.get('/api/fiori/PurchaseRequest/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const pr = await prModel.getById(id);
 
-  if (!pr) {
-    res.status(404).json({ error: 'Purchase Request not found' });
-    return;
+    if (!pr) {
+      res.status(404).json({ error: 'Purchase Request not found' });
+      return;
+    }
+
+    res.json(pr);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Purchase Request' });
   }
-
-  res.json(pr);
 });
 
-router.get('/api/fiori/WorkOrder/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const wo = woModel.getById(id);
+router.get('/api/fiori/WorkOrder/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const wo = await woModel.getById(id);
 
-  if (!wo) {
-    res.status(404).json({ error: 'Work Order not found' });
-    return;
+    if (!wo) {
+      res.status(404).json({ error: 'Work Order not found' });
+      return;
+    }
+
+    res.json(wo);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Work Order' });
   }
-
-  res.json(wo);
 });
 
 // Get all objects for list views
-router.get('/api/fiori/PurchaseOrders', (req: Request, res: Response) => {
-  const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
-  const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+router.get('/api/fiori/PurchaseOrders', async (req: Request, res: Response) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
 
-  const records = poModel.getAll(limit, offset);
-  const total = poModel.count();
+    const records = await poModel.getAll(limit, offset);
+    const total = await poModel.count();
 
-  res.json({
-    value: records,
-    '@odata.count': total,
-  });
+    res.json({
+      value: records,
+      '@odata.count': total,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Purchase Orders' });
+  }
 });
 
-router.get('/api/fiori/PurchaseRequests', (req: Request, res: Response) => {
-  const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
-  const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+router.get('/api/fiori/PurchaseRequests', async (req: Request, res: Response) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
 
-  const records = prModel.getAll(limit, offset);
-  const total = prModel.count();
+    const records = await prModel.getAll(limit, offset);
+    const total = await prModel.count();
 
-  res.json({
-    value: records,
-    '@odata.count': total,
-  });
+    res.json({
+      value: records,
+      '@odata.count': total,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Purchase Requests' });
+  }
 });
 
-router.get('/api/fiori/WorkOrders', (req: Request, res: Response) => {
-  const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
-  const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+router.get('/api/fiori/WorkOrders', async (req: Request, res: Response) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
 
-  const records = woModel.getAll(limit, offset);
-  const total = woModel.count();
+    const records = await woModel.getAll(limit, offset);
+    const total = await woModel.count();
 
-  res.json({
-    value: records,
-    '@odata.count': total,
-  });
+    res.json({
+      value: records,
+      '@odata.count': total,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch Work Orders' });
+  }
 });
 
 export default router;

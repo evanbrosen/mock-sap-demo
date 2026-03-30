@@ -20,52 +20,52 @@ export class PurchaseRequest extends BaseModel {
   /**
    * Submit a purchase request for approval
    */
-  submit(id: string, userId: string): IPurchaseRequest | undefined {
-    const pr = this.getById(id) as IPurchaseRequest | undefined;
+  async submit(id: string, userId: string): Promise<IPurchaseRequest | undefined> {
+    const pr = await this.getById(id) as IPurchaseRequest | undefined;
     if (!pr || pr.status !== 'DRAFT') return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'SUBMITTED',
       modified_by: userId,
-    }) as IPurchaseRequest | undefined;
+    })) as IPurchaseRequest | undefined;
   }
 
   /**
    * Approve a purchase request
    */
-  approve(id: string, userId: string): IPurchaseRequest | undefined {
-    const pr = this.getById(id) as IPurchaseRequest | undefined;
+  async approve(id: string, userId: string): Promise<IPurchaseRequest | undefined> {
+    const pr = await this.getById(id) as IPurchaseRequest | undefined;
     if (!pr || pr.status !== 'SUBMITTED') return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'APPROVED',
       modified_by: userId,
-    }) as IPurchaseRequest | undefined;
+    })) as IPurchaseRequest | undefined;
   }
 
   /**
    * Reject a purchase request
    */
-  reject(id: string, userId: string): IPurchaseRequest | undefined {
-    const pr = this.getById(id) as IPurchaseRequest | undefined;
+  async reject(id: string, userId: string): Promise<IPurchaseRequest | undefined> {
+    const pr = await this.getById(id) as IPurchaseRequest | undefined;
     if (!pr || !['SUBMITTED', 'APPROVED'].includes(pr.status)) return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'REJECTED',
       modified_by: userId,
-    }) as IPurchaseRequest | undefined;
+    })) as IPurchaseRequest | undefined;
   }
 
   /**
    * Convert a purchase request to a purchase order
    */
-  convertToPO(id: string, userId: string): IPurchaseRequest | undefined {
-    const pr = this.getById(id) as IPurchaseRequest | undefined;
+  async convertToPO(id: string, userId: string): Promise<IPurchaseRequest | undefined> {
+    const pr = await this.getById(id) as IPurchaseRequest | undefined;
     if (!pr || pr.status !== 'APPROVED') return undefined;
 
-    return this.update(id, {
+    return (await this.update(id, {
       status: 'CONVERTED_TO_PO',
       modified_by: userId,
-    }) as IPurchaseRequest | undefined;
+    })) as IPurchaseRequest | undefined;
   }
 }
