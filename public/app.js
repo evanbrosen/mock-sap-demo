@@ -3,6 +3,18 @@ const app = {
   currentView: 'home',
   apiBase: window.location.origin,
   currentModalType: null,
+  previousView: 'home',
+
+  formatCurrency(amount, currency = 'USD') {
+    if (amount === null || amount === undefined) return '-';
+    const formatter = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return formatter.format(amount);
+  },
 
   objectTypes: {
     PurchaseOrder: {
@@ -169,16 +181,16 @@ const app = {
     }
 
     tbody.innerHTML = items.map(item => {
-      const fioriLink = this.getFioriLink(type, item.id);
+      const amount = item.amount ? this.formatCurrency(item.amount, item.currency || 'USD') : '-';
       return `
-        <tr>
-          <td><a href="${fioriLink}" class="link">${item.id}</a></td>
+        <tr onclick="app.showDetail('${type}', '${item.id}')">
+          <td><a href="javascript:void(0)" class="link">${item.id}</a></td>
           <td>${item.vendor_id || item.requester_id || item.assigned_to || '-'}</td>
-          <td>${item.amount || item.priority || '-'}</td>
+          <td>${amount}</td>
           <td><span class="status status-${item.status.toLowerCase()}">${item.status}</span></td>
           <td>${new Date(item.created_date).toLocaleDateString()}</td>
           <td>
-            <button class="btn btn-sm" onclick="app.showDetail('${type}', '${item.id}')">View</button>
+            <button class="btn btn-sm" onclick="event.stopPropagation(); app.showDetail('${type}', '${item.id}')">View</button>
           </td>
         </tr>
       `;
@@ -198,15 +210,135 @@ const app = {
 
   async showDetail(type, id) {
     try {
+      this.previousView = this.currentView;
       const endpoint = type === 'PurchaseOrder' ? 'PurchaseOrder' :
                       type === 'PurchaseRequest' ? 'PurchaseRequest' : 'WorkOrder';
       const response = await fetch(`${this.apiBase}/api/fiori/${endpoint}/${id}`);
       const data = await response.json();
 
-      alert(`${type} Details:\n\n${JSON.stringify(data, null, 2)}`);
+      this.renderDetailView(type, data);
+      this.switchView('detail-view');
     } catch (error) {
       alert('Error loading details: ' + error.message);
     }
+  },
+
+  renderDetailView(type, data) {
+    const config = this.objectTypes[type];
+    const title = document.getElementById('detailTitle');
+    const content = document.getElementById('detailContent');
+    const actions = document.getElementById('detailActions');
+
+    title.textContent = `${config.label.slice(0, -1)}: ${data.id}`;
+
+    // Render detail sections
+    let detailHTML = `
+      <div class="detail-section">
+        <h3>Basic Information</h3>
+        <div class="detail-field">
+          <div class="detail-label">ID</div>
+          <div class="detail-value">${data.id}</div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Status</div>
+          <div class="detail-value">
+            <span class="status-badge status-${data.status.toLowerCase()}">${data.status}</span>
+          </div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Created Date</div>
+          <div class="detail-value">${new Date(data.created_date).toLocaleDateString()}</div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Created By</div>
+          <div class="detail-value">${data.created_by}</div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Details</h3>
+    `;
+
+    if (type === 'PurchaseOrder') {
+      detailHTML += `
+        <div class="detail-field">
+          <div class="detail-label">Vendor ID</div>
+          <div class="detail-value">${data.vendor_id}</div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Amount</div>
+          <div class="detail-value currency">${this.formatCurrency(data.amount, data.currency)}</div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Currency</div>
+          <div class="detail-value">${data.currency}</div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Description</div>
+          <div class="detail-value">${data.description || '-'}</div>
+        </div>
+      `;
+    } else if (type === 'PurchaseRequest') {
+      detailHTML += `
+        <div class="detail-field">
+          <div class="detail-label">Requester ID</div>
+          <div class="detail-value">${data.requester_id}</div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Amount</div>
+          <div class="detail-value currency">${this.formatCurrency(data.amount, data.currency)}</div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Currency</div>
+          <div class="detail-value">${data.currency}</div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Description</div>
+          <div class="detail-value">${data.description || '-'}</div>
+        </div>
+      `;
+    } else if (type === 'WorkOrder') {
+      detailHTML += `
+        <div class="detail-field">
+          <div class="detail-label">Assigned To</div>
+          <div class="detail-value">${data.assigned_to}</div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Priority</div>
+          <div class="detail-value">${data.priority}</div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-label">Description</div>
+          <div class="detail-value">${data.description || '-'}</div>
+        </div>
+      `;
+    }
+
+    detailHTML += '</div>';
+    content.innerHTML = detailHTML;
+
+    // Render action buttons based on status
+    let actionHTML = '';
+    if (data.status === 'DRAFT') {
+      actionHTML += '<button class="btn btn-primary" onclick="app.performAction(\'submit\')">Submit</button>';
+    }
+    if (data.status === 'SUBMITTED') {
+      actionHTML += '<button class="btn btn-primary" onclick="app.performAction(\'approve\')">Approve</button>';
+      actionHTML += '<button class="btn btn-danger" onclick="app.performAction(\'reject\')">Reject</button>';
+    }
+    if (data.status !== 'CLOSED' && data.status !== 'CANCELLED') {
+      actionHTML += '<button class="btn btn-secondary" onclick="app.performAction(\'cancel\')">Cancel</button>';
+    }
+
+    actions.innerHTML = actionHTML;
+  },
+
+  performAction(action) {
+    alert(`Action "${action}" would be performed here`);
+  },
+
+  goBack() {
+    this.switchView(this.previousView);
   },
 
   openCreateModal(type) {
@@ -323,15 +455,15 @@ const app = {
             }).join('');
 
             return `
-              <div class="object-card">
-                <div class="card-header" onclick="app.navigateToDashboard('${type}')">
+              <div class="object-card" onclick="app.navigateToDashboard('${type}')">
+                <div class="card-header">
                   <h3>${config.label}</h3>
                   <span class="card-count">${items.length}</span>
                 </div>
                 <div class="card-preview">
                   ${preview || '<div class="preview-item">No items yet</div>'}
                 </div>
-                <button class="btn btn-primary" onclick="app.openCreateModal('${type}')">
+                <button class="btn btn-primary" onclick="event.stopPropagation(); app.openCreateModal('${type}')">
                   + Create
                 </button>
               </div>
@@ -347,7 +479,7 @@ const app = {
                 <div class="card-preview">
                   <div class="preview-item error">Error loading data</div>
                 </div>
-                <button class="btn btn-primary" onclick="app.openCreateModal('${type}')">
+                <button class="btn btn-primary" onclick="event.stopPropagation(); app.openCreateModal('${type}')">
                   + Create
                 </button>
               </div>
