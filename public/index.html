@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock SAP Frontend - Fiori Demo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <div class="header-content">
+        <h1>Mock SAP S/4HANA Frontend</h1>
+        <p class="subtitle">Fiori Intent-Based Navigation Demo</p>
+      </div>
+    </header>
+
+    <nav class="nav">
+      <button class="nav-btn active" data-view="home">Home</button>
+      <button class="nav-btn" data-view="purchase-orders">Purchase Orders</button>
+      <button class="nav-btn" data-view="purchase-requests">Purchase Requests</button>
+      <button class="nav-btn" data-view="work-orders">Work Orders</button>
+      <button class="nav-btn" data-view="api-docs">API Docs</button>
+    </nav>
+
+    <main class="main-content">
+      <!-- Home View -->
+      <section id="home" class="view active">
+        <div class="container">
+          <h2>Welcome to Mock SAP Frontend</h2>
+          <p>This is a mock SAP S/4HANA frontend demonstrating:</p>
+          <ul>
+            <li><strong>Fiori Intent-Based Navigation:</strong> URLs like <code>#PurchaseOrder-display?PurchaseOrder=PO-001</code></li>
+            <li><strong>OData API Endpoints:</strong> RESTful API following SAP conventions</li>
+            <li><strong>Business Actions:</strong> Submit, Approve, Reject, and more</li>
+            <li><strong>Extensible Architecture:</strong> Easy to add new object types</li>
+          </ul>
+
+          <div class="quick-links">
+            <h3>Quick Links</h3>
+            <div class="link-grid">
+              <a href="/#PurchaseOrder-create" class="link-card">
+                <h4>Create Purchase Order</h4>
+                <p>Start a new PO</p>
+              </a>
+              <a href="/#PurchaseRequest-create" class="link-card">
+                <h4>Create Purchase Request</h4>
+                <p>Start a new PR</p>
+              </a>
+              <a href="/#WorkOrder-create" class="link-card">
+                <h4>Create Work Order</h4>
+                <p>Start a new WO</p>
+              </a>
+              <a href="/api/docs" class="link-card">
+                <h4>API Documentation</h4>
+                <p>View all endpoints</p>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Purchase Orders View -->
+      <section id="purchase-orders" class="view">
+        <div class="container">
+          <div class="view-header">
+            <h2>Purchase Orders</h2>
+            <button class="btn btn-primary" onclick="app.createNew('PurchaseOrder')">+ New PO</button>
+          </div>
+
+          <div class="list-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Vendor</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="po-list">
+                <tr><td colspan="6" class="loading">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Purchase Requests View -->
+      <section id="purchase-requests" class="view">
+        <div class="container">
+          <div class="view-header">
+            <h2>Purchase Requests</h2>
+            <button class="btn btn-primary" onclick="app.createNew('PurchaseRequest')">+ New PR</button>
+          </div>
+
+          <div class="list-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Requester</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="pr-list">
+                <tr><td colspan="6" class="loading">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Work Orders View -->
+      <section id="work-orders" class="view">
+        <div class="container">
+          <div class="view-header">
+            <h2>Work Orders</h2>
+            <button class="btn btn-primary" onclick="app.createNew('WorkOrder')">+ New WO</button>
+          </div>
+
+          <div class="list-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Assigned To</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="wo-list">
+                <tr><td colspan="6" class="loading">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- API Docs View -->
+      <section id="api-docs" class="view">
+        <div class="container">
+          <h2>API Documentation</h2>
+          <div id="api-content" class="api-docs">
+            <p class="loading">Loading API documentation...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 Mock SAP Frontend. Built with Node.js, Express, and TypeScript.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
