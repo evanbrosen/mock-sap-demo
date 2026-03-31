@@ -15,6 +15,12 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from dist (React build output)
+const distPath = path.join(__dirname, '../dist');
+app.use(express.static(distPath));
+
+// Fallback to public for development
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Initialize database
@@ -99,7 +105,7 @@ app.get('/api/docs', (req: Request, res: Response) => {
 
 // Serve the web UI for all other routes (SPA)
 app.get('*', (req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  res.sendFile(path.join(__dirname, '../index.html'));
 });
 
 // Start server
