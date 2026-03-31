@@ -4,11 +4,12 @@
   "description": "Mock SAP S/4HANA frontend with Fiori intent-based navigation and OData API",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc && vite build",
+    "build": "tsc -p tsconfig.backend.json && vite build",
     "start": "node dist/server.js",
-    "dev": "concurrently \"ts-node src/server.ts\" \"vite\"",
-    "dev:server": "ts-node src/server.ts",
+    "dev": "npm run build:backend && concurrently \"node dist/server.js\" \"vite\"",
+    "dev:server": "npm run build:backend && node dist/server.js",
     "dev:client": "vite",
+    "build:backend": "tsc -p tsconfig.backend.json",
     "watch": "tsc --watch",
     "clean": "rm -rf dist"
   },

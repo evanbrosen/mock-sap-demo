@@ -17,11 +17,11 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static files from dist (React build output)
-const distPath = path.join(__dirname, '../dist');
+const distPath = path.join(process.cwd(), 'dist');
 app.use(express.static(distPath));
 
 // Fallback to public for development
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // Initialize database
 initializeDatabase();

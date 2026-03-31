@@ -29,7 +29,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src/**/*.tsx", "src/**/*.ts", "!src/server.ts", "!src/config/**", "!src/controllers/**", "!src/models/**", "!src/routes/**", "!src/middleware/**", "!src/utils/**"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
 
